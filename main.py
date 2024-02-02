@@ -1,31 +1,20 @@
 import sys
-
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow
 import requests
 
 
-spn = int(input('Введите масштаб '))
-coords = [float(i) for i in input('Введите координаты через пробел ').split()]
-
-
 class MainWindow(QMainWindow):
-    g_map: QLabel
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        uic.loadUi('ui_class_work.ui', self)
-
-        global spn, coords
-        # 5
-        # 37.977751 55.757718
-        self.map_zoom = spn + 1
-        self.map_ll = coords
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('04.ui', self)
+        self.map_zoom = 10
+        delta = 0.2
         self.map_l = 'map'
+        self.map_ll = [37.620431, 55.753789]
         self.press_delta = 12.5 / (self.map_zoom ** 3)
-
         self.render_map()
 
     def keyPressEvent(self, event):
@@ -33,7 +22,6 @@ class MainWindow(QMainWindow):
         if key == Qt.Key_PageUp and self.map_zoom < 17:
             self.map_zoom += 1
             self.press_delta = 12.5 / (self.map_zoom ** 3)
-            print(self.press_delta)
         if key == Qt.Key_PageDown and self.map_zoom > 0:
             self.map_zoom -= 1
             if self.map_zoom > 0:
@@ -49,27 +37,33 @@ class MainWindow(QMainWindow):
             self.map_ll[1] += self.press_delta * self.map_zoom
         if key == Qt.Key_Down:
             self.map_ll[1] -= self.press_delta * self.map_zoom
+        if key == Qt.Key_G:
+            self.map_l = 'sat,skl'
+        if key == Qt.Key_S:
+            self.map_l = 'sat'
+        if key == Qt.Key_M:
+            self.map_l = 'map'
 
         self.render_map()
 
     def render_map(self):
-        map_params = {
+        params = {
             "ll": f'{self.map_ll[0]},{self.map_ll[1]}',
             "l": self.map_l,
-            'z': self.map_zoom,
+            'z': self.map_zoom
+
         }
-        response = requests.get('https://static-maps.yandex.ru/1.x/',
-                                params=map_params)
-        with open('tmp.png', mode='wb') as tmp:
-            tmp.write(response.content)
+        resspons = requests.get('https://static-maps.yandex.ru/1.x/', params=params)
+        with open('tmp.png', 'wb') as tmp:
+            tmp.write(resspons.content)
 
         pixmap = QPixmap()
         pixmap.load('tmp.png')
 
-        self.g_map.setPixmap(pixmap)
+        self.label.setPixmap(pixmap)
 
 
 app = QApplication(sys.argv)
-main_window = MainWindow()
-main_window.show()
-sys.exit(app.exec())
+ex = MainWindow()
+ex.show()
+sys.exit(app.exec_())
