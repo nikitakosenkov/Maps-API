@@ -30,13 +30,16 @@ class MainWindow(QMainWindow):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == Qt.Key_PageUp and self.map_zoom < 18:
+        if key == Qt.Key_PageUp and self.map_zoom < 17:
             self.map_zoom += 1
             self.press_delta = 12.5 / (self.map_zoom ** 3)
             print(self.press_delta)
-        if key == Qt.Key_PageDown and self.map_zoom > 1:
+        if key == Qt.Key_PageDown and self.map_zoom > 0:
             self.map_zoom -= 1
-            self.press_delta = 12.5 / (self.map_zoom ** 3)
+            if self.map_zoom > 0:
+                self.press_delta = 12.5 / (self.map_zoom ** 3)
+            else:
+                self.press_delta = 12.5
             print(self.press_delta)
         if key == Qt.Key_Left:
             self.map_ll[0] -= self.press_delta * self.map_zoom
