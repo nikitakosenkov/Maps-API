@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         global spn, coords
         # 5
         # 37.977751 55.757718
-        self.map_zoom = spn
+        self.map_zoom = spn + 1
         self.map_ll = coords
         self.map_l = 'map'
         self.press_delta = 12.5 / (self.map_zoom ** 3)
@@ -30,11 +30,11 @@ class MainWindow(QMainWindow):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == Qt.Key_PageUp and self.map_zoom < 17:
+        if key == Qt.Key_PageUp and self.map_zoom < 18:
             self.map_zoom += 1
             self.press_delta = 12.5 / (self.map_zoom ** 3)
             print(self.press_delta)
-        if key == Qt.Key_PageDown and self.map_zoom > 0:
+        if key == Qt.Key_PageDown and self.map_zoom > 1:
             self.map_zoom -= 1
             self.press_delta = 12.5 / (self.map_zoom ** 3)
             print(self.press_delta)
