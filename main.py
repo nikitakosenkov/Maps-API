@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QMainWindow
 import requests
+from pprint import pprint
 
 
 class MainWindow(QMainWindow):
@@ -13,9 +14,13 @@ class MainWindow(QMainWindow):
         self.map_zoom = 10
         delta = 0.2
         self.map_l = 'map'
+        self.postal_code = ''
+        self.post_flag = False
         self.lineEdit.setEnabled(False)
         self.pushButton_2.clicked.connect(self.onoff)
         self.pushButton.clicked.connect(self.find_obj)
+        self.pushButton_3.clicked.connect(self.reset)
+        self.pushButton_4.clicked.connect(self.post)
         self.map_ll = [37.620431, 55.753789]
         self.press_delta = 12.5 / (self.map_zoom ** 3)
         self.pts = []
@@ -32,7 +37,6 @@ class MainWindow(QMainWindow):
                 self.press_delta = 12.5 / (self.map_zoom ** 3)
             else:
                 self.press_delta = 12.5
-            print(self.press_delta)
         if key == Qt.Key_Left:
             self.map_ll[0] -= self.press_delta * self.map_zoom
         if key == Qt.Key_Right:
@@ -76,6 +80,9 @@ class MainWindow(QMainWindow):
             self.pushButton_2.setText('off')
 
     def find_obj(self):
+        self.label_13.clear()
+        self.postal_code = ''
+        self.post_flag = False
         toponym_to_find = self.lineEdit.text()
         geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
         geocoder_params = {
@@ -90,10 +97,35 @@ class MainWindow(QMainWindow):
         toponym = json_response["response"]["GeoObjectCollection"][
             "featureMember"][0]["GeoObject"]
         toponym_coodrinates = toponym["Point"]["pos"]
+        full_adress = toponym['metaDataProperty']['GeocoderMetaData']['text']
+        try:
+            self.postal_code = toponym['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']
+        except Exception:
+            self.postal_code = 'У введеного адреса нету почтового индекса'
+        self.label_12.setText(full_adress)
         toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
         self.map_ll = [float(toponym_longitude), float(toponym_lattitude)]
         self.pts.append(toponym_longitude + ',' + toponym_lattitude)
         self.render_map()
+
+    def reset(self):
+        try:
+            self.pts.pop()
+        except Exception:
+            pass
+        self.label_12.clear()
+        self.label_13.clear()
+        self.postal_code = ''
+        self.post_flag = False
+        self.render_map()
+
+    def post(self):
+        if self.post_flag is False and self.postal_code != '':
+            self.label_13.setText(self.postal_code)
+            self.post_flag = True
+        elif self.post_flag is True:
+            self.post_flag = False
+            self.label_13.clear()
 
 
 app = QApplication(sys.argv)
