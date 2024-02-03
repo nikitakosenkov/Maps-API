@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         self.pushButton_3.clicked.connect(self.reset)
         self.pushButton_4.clicked.connect(self.post)
         self.map_ll = [37.620431, 55.753789]
-        self.press_delta = 12.5 / (self.map_zoom ** 3)
+        self.press_delta = 39062.5 / (self.map_zoom ** 8)
         self.pts = []
         self.render_map()
 
@@ -30,13 +30,12 @@ class MainWindow(QMainWindow):
         key = event.key()
         if key == Qt.Key_PageUp and self.map_zoom < 17:
             self.map_zoom += 1
-            self.press_delta = 12.5 / (self.map_zoom ** 3)
+        if self.map_zoom > 2:
+            self.press_delta = 39062.5 / (self.map_zoom ** 8)
         if key == Qt.Key_PageDown and self.map_zoom > 0:
             self.map_zoom -= 1
-            if self.map_zoom > 0:
-                self.press_delta = 12.5 / (self.map_zoom ** 3)
-            else:
-                self.press_delta = 12.5
+            if self.map_zoom > 2:
+                self.press_delta = 39062.5 / (self.map_zoom ** 8)
         if key == Qt.Key_Left:
             self.map_ll[0] -= self.press_delta * self.map_zoom
         if key == Qt.Key_Right:
