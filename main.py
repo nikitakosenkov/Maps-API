@@ -13,8 +13,12 @@ class MainWindow(QMainWindow):
         self.map_zoom = 10
         delta = 0.2
         self.map_l = 'map'
+        self.lineEdit.setEnabled(False)
+        self.pushButton_2.clicked.connect(self.onoff)
+        self.pushButton.clicked.connect(self.find_obj)
         self.map_ll = [37.620431, 55.753789]
         self.press_delta = 12.5 / (self.map_zoom ** 3)
+        self.pts = []
         self.render_map()
 
     def keyPressEvent(self, event):
@@ -50,7 +54,8 @@ class MainWindow(QMainWindow):
         params = {
             "ll": f'{self.map_ll[0]},{self.map_ll[1]}',
             "l": self.map_l,
-            'z': self.map_zoom
+            'z': self.map_zoom,
+            "pt": '~'.join(self.pts)
 
         }
         resspons = requests.get('https://static-maps.yandex.ru/1.x/', params=params)
@@ -61,6 +66,34 @@ class MainWindow(QMainWindow):
         pixmap.load('tmp.png')
 
         self.label.setPixmap(pixmap)
+
+    def onoff(self):
+        if self.pushButton_2.text() == 'off':
+            self.lineEdit.setEnabled(True)
+            self.pushButton_2.setText('on')
+        else:
+            self.lineEdit.setEnabled(False)
+            self.pushButton_2.setText('off')
+
+    def find_obj(self):
+        toponym_to_find = self.lineEdit.text()
+        geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+        geocoder_params = {
+            "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+            "geocode": toponym_to_find,
+            "format": "json"}
+
+        response = requests.get(geocoder_api_server, params=geocoder_params)
+        if not response:
+            pass
+        json_response = response.json()
+        toponym = json_response["response"]["GeoObjectCollection"][
+            "featureMember"][0]["GeoObject"]
+        toponym_coodrinates = toponym["Point"]["pos"]
+        toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
+        self.map_ll = [float(toponym_longitude), float(toponym_lattitude)]
+        self.pts.append(toponym_longitude + ',' + toponym_lattitude)
+        self.render_map()
 
 
 app = QApplication(sys.argv)
